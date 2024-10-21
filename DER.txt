@@ -1,0 +1,114 @@
+Entidades e Atributos
+Usuário
+
+ID (chave primária)
+Nome
+E-mail
+Filme
+
+ID (chave primária)
+Título
+Gênero
+Duração
+Classificação
+Sessão
+
+ID (chave primária)
+FilmeID (chave estrangeira)
+Horário
+Data
+Poltrona
+
+ID (chave primária)
+Número
+Ocupada (boolean)
+Ingresso
+
+ID (chave primária)
+UsuárioID (chave estrangeira)
+SessãoID (chave estrangeira)
+PoltronaID (chave estrangeira)
+Tipo (Inteira ou Meia)
+Valor
+MétodoPagamento (Cartão ou Pix)
+DataCompra
+Relacionamentos
+Usuário pode comprar Ingressos (1
+)
+Filme pode ter várias Sessões (1
+)
+Sessão tem várias Poltronas (1
+) (considerando que a poltrona pode estar ocupada ou não)
+Ingresso está associado a um Usuário, uma Sessão e uma Poltrona (N:1)
+DER em Texto
+plaintext
+Copiar código
+Usuário (ID, Nome, E-mail)
+   |
+   | 1:N
+   |
+Ingresso (ID, UsuárioID, SessãoID, PoltronaID, Tipo, Valor, MétodoPagamento, DataCompra)
+   |
+   | N:1
+   |
+Sessão (ID, FilmeID, Horário, Data)
+   |
+   | N:1
+   |
+Filme (ID, Título, Gênero, Duração, Classificação)
+
+Poltrona (ID, Número, Ocupada)
+   |
+   | N:1
+   |
+Sessão (ID)
+Diagrama Visual
+Para criar um diagrama visual, você pode usar ferramentas como Lucidchart, Draw.io ou MySQL Workbench. Aqui está uma representação simples que você pode usar como referência:
+
+plaintext
+Copiar código
++------------+       +-------------+
+|   Usuário  |       |    Filme    |
+|------------|       |-------------|
+| ID         |<----1 | ID          |
+| Nome       |       | Título      |
+| E-mail     |       | Gênero      |
++------------+       | Duração     |
+                     | Classificação|
+                     +-------------+
+                           |
+                           | N
+                           |
+                     +-------------+
+                     |   Sessão    |
+                     |-------------|
+                     | ID          |
+                     | FilmeID     |
+                     | Horário     |
+                     | Data        |
+                     +-------------+
+                           |
+                           | N
+                           |
+                     +-------------+
+                     |   Poltrona  |
+                     |-------------|
+                     | ID          |
+                     | Número      |
+                     | Ocupada     |
+                     +-------------+
+                           |
+                           | N
+                           |
+                     +-------------+
+                     |   Ingresso  |
+                     |-------------|
+                     | ID          |
+                     | UsuárioID   |
+                     | SessãoID    |
+                     | PoltronaID  |
+                     | Tipo        |
+                     | Valor       |
+                     | MétodoPagamento|
+                     | DataCompra  |
+                     +-------------+
