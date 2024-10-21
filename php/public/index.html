@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escolha um Filme</title>
+    <link rel="shortcut icon" href="assets/img/icon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <img src="assets/img/logo.png" alt="logo" srcset="" />
+      </div>
+      <div class="logotipo">
+        <h1>Filmes em Cartaz</h1>
+        <p>Escolha um filme para assistir</p>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="filme" onclick="selecionarFilme('Coringa 2')">
+        <img
+          src="assets/img/6eb6b44d-859b-4ffe-87fd-e728d55dc2f5.webp"
+          alt="Coringa 2"
+          srcset=""
+        />
+        <h2>Coringa 2</h2>
+      </div>
+      <div
+        class="filme"
+        onclick="selecionarFilme('A Morte do Demonio : A Ascensão')"
+      >
+        <img
+          src="assets/img/870fe027-8d5a-4a50-bdc3-5d1119dd45ce.jpg"
+          alt="A morte do demonio : a ascensão"
+          srcset=""
+        />
+        <h2>A morte do Demonio : A Ascensão</h2>
+      </div>
+      <div class="filme" onclick="selecionarFilme('Venon : A ultima Rodada')">
+        <img
+          src="assets/img/888f6031-29b2-4f69-b82f-e5485854e1a0.webp"
+          alt="Venon : A ultima rodada"
+          srcset=""
+        />
+        <h2>Venon : A ultima Rodada</h2>
+      </div>
+    </div>
+    <div id="fila"></div>
+
+    <script>
+      let filas = JSON.parse(localStorage.getItem("filas")) || {};
+      let tempoRestante = 10;
+
+      function atualizarFila(filme) {
+        const filaDiv = document.getElementById("fila");
+        filaDiv.innerHTML = `<h2>Fila de Espera para ${filme}:</h2>`;
+        if (filas[filme]) {
+          const usuariosOrdenados = filas[filme].slice().sort((a, b) => {
+            return filas[filme].indexOf(a) - filas[filme].indexOf(b);
+          });
+
+          usuariosOrdenados.forEach((usuario, index) => {
+            const tempoEspera = 10 + index * 20;
+            filaDiv.innerHTML += `
+        <p style="color: black; background: white; padding: 10px; border-radius: 10px; margin: 5px 0;">
+          Usuário: ${usuario}, Posição: ${index + 1}
+        </p>`;
+          });
+        }
+      }
+
+      function criarInputCustomizado() {
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    `;
+
+          const dialog = document.createElement("div");
+          dialog.style.cssText = `
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      text-align: center;
+      min-width: 300px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    `;
+
+          const input = document.createElement("input");
+          input.style.cssText = `
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    `;
+          input.placeholder = "Digite seu nome";
+
+          const button = document.createElement("button");
+          button.textContent = "Confirmar";
+          button.style.cssText = `
+      padding: 8px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    `;
+          button.onmouseover = () => (button.style.background = "#0056b3");
+          button.onmouseout = () => (button.style.background = "#007bff");
+
+          button.onclick = () => {
+            const value = input.value.trim();
+            if (value) {
+              document.body.removeChild(overlay);
+              resolve(value);
+            }
+          };
+
+          dialog.appendChild(document.createElement("p")).textContent =
+            "Digite seu nome:";
+          dialog.appendChild(input);
+          dialog.appendChild(button);
+          overlay.appendChild(dialog);
+          document.body.appendChild(overlay);
+
+          input.focus();
+        });
+      }
+
+      async function selecionarFilme(filme) {
+        const usuario = await criarInputCustomizado();
+        if (usuario) {
+          if (!filas[filme]) {
+            filas[filme] = [];
+          }
+
+          if (!filas[filme].includes(usuario)) {
+            filas[filme].push(usuario);
+            localStorage.setItem("filas", JSON.stringify(filas));
+          }
+
+          const posicaoUsuario = filas[filme].indexOf(usuario);
+          tempoRestante = 10 + posicaoUsuario * 20;
+
+          atualizarFila(filme);
+
+          const tempoDiv = document.createElement("div");
+          tempoDiv.id = "tempoRegressivo";
+          tempoDiv.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      color: black;
+    `;
+          document.body.appendChild(tempoDiv);
+
+          const countdown = setInterval(() => {
+            tempoRestante--;
+            tempoDiv.innerHTML = `Tempo restante: ${tempoRestante} segundos`;
+            if (tempoRestante <= 0) {
+              clearInterval(countdown);
+              document.body.removeChild(tempoDiv);
+
+              // Remove o usuário da fila antes de redirecionar
+              const userIndex = filas[filme].indexOf(usuario);
+              if (userIndex > -1) {
+                filas[filme].splice(userIndex, 1);
+                localStorage.setItem("filas", JSON.stringify(filas));
+              }
+
+              window.location.href = `selecao.html?filme=${encodeURIComponent(
+                filme
+              )}&usuario=${encodeURIComponent(usuario)}`;
+            }
+          }, 1000);
+
+          tempoDiv.innerHTML = `Tempo restante: ${tempoRestante} segundos`;
+        }
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const filmeAtual = urlParams.get("filme");
+      if (filmeAtual) {
+        atualizarFila(filmeAtual);
+      }
+    </script>
+  </body>
+</html>

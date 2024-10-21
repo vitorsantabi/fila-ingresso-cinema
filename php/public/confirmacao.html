@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Compra</title>
+    <link rel="shortcut icon" href="assets/img/icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/cifirma.css">
+</head>
+<body>
+    <h1>Confirmação de Compra</h1>
+    <div id="detalhes-compra"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const filme = urlParams.get('filme');
+        const nome = urlParams.get('nome');
+        const email = urlParams.get('email');
+        const horario = urlParams.get('horario');
+        const poltrona = urlParams.get('poltrona');
+        const tipoIngresso = urlParams.get('tipo');
+        const valor = urlParams.get('valor');
+        const pagamento = urlParams.get('pagamento');
+        const carteiraEstudante = urlParams.get('carteiraEstudante');
+
+        // Exibir os dados da compra
+        let detalhes = `<p>Filme: ${filme}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>Nome: ${nome}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>E-mail: ${email}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>Horário: ${horario}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>Poltrona: ${poltrona}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>Tipo de Ingresso: ${tipoIngresso}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>Valor: </p><p style="color: green;">R$ ${valor}</p>`;
+        detalhes += `<hr>`;
+        detalhes += `<p>Método de Pagamento:</p> <p style="color: green;">${pagamento}</p>`;
+
+        if (tipoIngresso === 'meia' && carteiraEstudante) {
+            detalhes += `<p>Carteira de Estudante: ${carteiraEstudante}</p>`;
+        }
+
+        document.getElementById('detalhes-compra').innerHTML = detalhes;
+    </script>
+</body>
+</html>

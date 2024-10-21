@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seleção de Poltrona</title>
+    <link rel="shortcut icon" href="assets/img/icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/selecao.css" />
+  </head>
+  <body>
+    <h1>Seleção de Poltrona</h1>
+
+    <div id="filme-info"></div>
+    <div id="horarios">
+      <h2>Horários Disponíveis:</h2>
+      <div class="horario" onclick="selecionarHorario('10:00')">10:00</div>
+      <div class="horario" onclick="selecionarHorario('14:00')">14:00</div>
+      <div class="horario" onclick="selecionarHorario('18:00')">18:00</div>
+      <div class="horario" onclick="selecionarHorario('20:00')">20:00</div>
+    </div>
+
+    <div id="poltronas" style="display: none">
+      <h2>Selecione sua poltrona:</h2>
+      <div class="poltronas">
+        <div class="tela">TELA</div>
+      </div>
+    </div>
+
+    <div id="formulario" style="display: none;">
+      <h2>Dados do Usuário</h2>
+      <form id="comprar-form">
+        <label for="nome">Nome Completo:</label><br />
+        <input type="text" id="nome" required /><br />
+        <label for="email">E-mail:</label><br />
+        <input type="email" id="email" required /><br />
+
+        <div class="tipo-ingresso">
+          <h3>Tipo de Ingresso:</h3>
+          <label>
+            <input
+              type="radio"
+              name="tipo"
+              value="inteira"
+              checked
+              onclick="toggleMeia(false)"
+            />
+            Inteira (R$ 25,00)
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="tipo"
+              value="meia"
+              onclick="toggleMeia(true)"
+            />
+            Meia (R$ 12,50)
+          </label>
+        </div>
+
+        <div id="campos-meia" style="display: none;">
+          <label for="carteira-estudante">Número da Carteira de Estudante:</label><br />
+          <input type="text" id="carteira-estudante" /><br />
+        </div>
+
+        <h3>Método de Pagamento:</h3>
+        <label>
+          <input
+            type="radio"
+            name="pagamento"
+            value="cartao"
+            checked
+            onclick="mostrarPagamento('cartao')"
+          />
+          Cartão
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="pagamento"
+            value="pix"
+            onclick="mostrarPagamento('pix')"
+          />
+          Pix
+        </label>
+        <div id="campos-pagamento-cartao" style="display: block">
+          <h4>Dados do Cartão:</h4>
+          <label for="numero-cartao">Número do Cartão:</label><br />
+          <input type="text" id="numero-cartao" /><br />
+          <label for="vencimento">Data de Vencimento:</label><br />
+          <input
+            type="text"
+            id="vencimento"
+            placeholder="MM/AA"
+          /><br />
+          <label for="cvv">CVV:</label><br />
+          <input type="text" id="cvv" /><br />
+        </div>
+        <div id="campos-pagamento-pix" style="display: none">
+          <h4>Pagamento via Pix:</h4>
+          <p>Chave Pix: <strong>ingresso.cine@55.com</strong></p>
+        </div>
+        <button type="submit">Comprar Ingresso</button>
+      </form>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const filme = urlParams.get("filme");
+      let poltronaSelecionada = null;
+      let horarioSelecionado = null;
+
+      document.getElementById("filme-info").innerHTML = `<h2>${filme}</h2>`;
+
+      // Criar poltronas
+      const poltronasContainer = document.querySelector(".poltronas");
+      for (let i = 1; i <= 40; i++) {
+        const poltrona = document.createElement("div");
+        poltrona.className = "poltrona";
+        poltrona.textContent = `A${i}`;
+        poltrona.onclick = () => selecionarPoltrona(`A${i}`, poltrona);
+        poltronasContainer.appendChild(poltrona);
+      }
+
+      function selecionarHorario(horario) {
+        const horarios = document.querySelectorAll(".horario");
+        horarios.forEach((h) => h.classList.remove("selected"));
+        document
+          .querySelector(`.horario[onclick="selecionarHorario('${horario}')"]`)
+          .classList.add("selected");
+        horarioSelecionado = horario;
+        document.getElementById("poltronas").style.display = "block";
+      }
+
+      function selecionarPoltrona(numero, elemento) {
+        if (elemento.classList.contains("ocupada")) return;
+
+        document
+          .querySelectorAll(".poltrona")
+          .forEach((p) => p.classList.remove("selecionada"));
+        elemento.classList.add("selecionada");
+        poltronaSelecionada = numero;
+        document.getElementById("formulario").style.display = "block";
+      }
+
+      function toggleMeia(show) {
+        document.getElementById("campos-meia").style.display = show
+          ? "block"
+          : "none";
+        document.getElementById("carteira-estudante").required = show;
+      }
+
+      function mostrarPagamento(metodo) {
+        const numeroCartao = document.getElementById("numero-cartao");
+        const vencimento = document.getElementById("vencimento");
+        const cvv = document.getElementById("cvv");
+
+        if (metodo === "pix") {
+          numeroCartao.removeAttribute("required");
+          vencimento.removeAttribute("required");
+          cvv.removeAttribute("required");
+        } else {
+          numeroCartao.setAttribute("required", "true");
+          vencimento.setAttribute("required", "true");
+          cvv.setAttribute("required", "true");
+        }
+
+        document.getElementById("campos-pagamento-cartao").style.display =
+          metodo === "cartao" ? "block" : "none";
+        document.getElementById("campos-pagamento-pix").style.display =
+          metodo === "pix" ? "block" : "none";
+      }
+
+      document.getElementById("comprar-form").onsubmit = function (event) {
+        event.preventDefault();
+        const nome = document.getElementById("nome").value;
+        const email = document.getElementById("email").value;
+        const tipoIngresso = document.querySelector(
+          'input[name="tipo"]:checked'
+        ).value;
+        const valor = tipoIngresso === "inteira" ? 25.0 : 12.5;
+        const pagamento = document.querySelector(
+          'input[name="pagamento"]:checked'
+        ).value;
+        const carteiraEstudante =
+          document.getElementById("carteira-estudante").value;
+
+        // Verifica se um horário e poltrona foram selecionados
+        if (!horarioSelecionado || !poltronaSelecionada) {
+          alert("Por favor, selecione um horário e uma poltrona.");
+          return;
+        }
+
+        // Montar a URL com os parâmetros
+        let url = `confirmacao.html?filme=${filme}&nome=${nome}&email=${email}&horario=${horarioSelecionado}&poltrona=${poltronaSelecionada}&tipo=${tipoIngresso}&valor=${valor.toFixed(
+          2
+        )}&pagamento=${pagamento}`;
+
+        if (tipoIngresso === "meia") {
+          url += `&carteiraEstudante=${carteiraEstudante}`;
+        }
+
+        // Redirecionar para a página de confirmação
+        window.location.href = url;
+      };
+    </script>
+  </body>
+</html>
