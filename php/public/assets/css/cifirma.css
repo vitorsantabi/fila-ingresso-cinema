@@ -21,7 +21,7 @@ body {
     justify-content: center;
     margin-top: 20px;
     width: 50%;
-    height: 450px;
+    height: auto;
     background-color: rgb(235, 232, 215);
     color: black;
     border-radius: 10px;
@@ -30,7 +30,7 @@ body {
 }
 #detalhes-compra p{
     
-    
+    padding: 10px;
     margin-left: 20px;
     color: #1d1d1d;
 }
