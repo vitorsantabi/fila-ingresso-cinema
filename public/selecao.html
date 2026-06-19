@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Selecione horário, poltrona e finalize a compra do seu ingresso de cinema." />
+    <title>CineTicket — Seleção de Poltrona</title>
+    <link rel="shortcut icon" href="assets/img/icon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="assets/css/selecao.css" />
+  </head>
+  <body>
+    <h1>Seleção de Poltrona</h1>
+
+    <!-- Progress Stepper -->
+    <nav class="stepper" aria-label="Progresso da compra">
+      <div class="step active" id="step-1">
+        <span class="step-number">1</span>
+        <span class="step-label">Horário</span>
+      </div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step" id="step-2">
+        <span class="step-number">2</span>
+        <span class="step-label">Poltrona</span>
+      </div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step" id="step-3">
+        <span class="step-number">3</span>
+        <span class="step-label">Pagamento</span>
+      </div>
+    </nav>
+
+    <div id="filme-info"></div>
+
+    <!-- Horários -->
+    <section id="horarios">
+      <h2>Horários Disponíveis</h2>
+      <div class="horarios-grid" id="horarios-grid">
+        <button type="button" class="horario" data-horario="10:00">10:00</button>
+        <button type="button" class="horario" data-horario="14:00">14:00</button>
+        <button type="button" class="horario" data-horario="18:00">18:00</button>
+        <button type="button" class="horario" data-horario="20:00">20:00</button>
+      </div>
+    </section>
+
+    <!-- Poltronas -->
+    <section id="poltronas" style="display: none">
+      <h2>Selecione sua poltrona</h2>
+      <div class="poltronas" id="poltronas-grid">
+        <div class="tela">TELA</div>
+      </div>
+      <div class="legenda">
+        <div class="legenda-item">
+          <div class="legenda-box disponivel"></div>
+          <span>Disponível</span>
+        </div>
+        <div class="legenda-item">
+          <div class="legenda-box selecionada"></div>
+          <span>Selecionada</span>
+        </div>
+        <div class="legenda-item">
+          <div class="legenda-box ocupada"></div>
+          <span>Ocupada</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulário -->
+    <section id="formulario" style="display: none">
+      <h2>Dados para Compra</h2>
+      <form id="comprar-form" novalidate>
+        <div class="form-group">
+          <label for="nome">Nome Completo</label>
+          <input type="text" id="nome" placeholder="Seu nome completo" required maxlength="100" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" placeholder="seu@email.com" required maxlength="100" autocomplete="email" />
+        </div>
+
+        <!-- Tipo de Ingresso -->
+        <div class="radio-group">
+          <h3>Tipo de Ingresso</h3>
+          <div class="radio-options">
+            <div class="radio-card">
+              <input type="radio" name="tipo" id="tipo-inteira" value="inteira" checked />
+              <label class="radio-label" for="tipo-inteira">
+                🎬 Inteira
+                <span class="price">R$ 25,00</span>
+              </label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="tipo" id="tipo-meia" value="meia" />
+              <label class="radio-label" for="tipo-meia">
+                🎓 Meia
+                <span class="price">R$ 12,50</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="campos-meia" style="display: none">
+          <label for="carteira-estudante">Número da Carteira de Estudante</label>
+          <input type="text" id="carteira-estudante" placeholder="Ex: 123456789" maxlength="20" />
+        </div>
+
+        <!-- Método de Pagamento -->
+        <div class="radio-group">
+          <h3>Método de Pagamento</h3>
+          <div class="radio-options">
+            <div class="radio-card">
+              <input type="radio" name="pagamento" id="pag-cartao" value="cartao" checked />
+              <label class="radio-label" for="pag-cartao">
+                💳 Cartão
+              </label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="pagamento" id="pag-pix" value="pix" />
+              <label class="radio-label" for="pag-pix">
+                📱 Pix
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="campos-pagamento-cartao">
+          <h4>Dados do Cartão</h4>
+          <div class="card-fields">
+            <div>
+              <input type="text" id="numero-cartao" placeholder="Número do cartão" maxlength="19" autocomplete="cc-number" inputmode="numeric" />
+            </div>
+            <div class="card-row">
+              <input type="text" id="vencimento" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric" />
+              <input type="text" id="cvv" placeholder="CVV" maxlength="4" autocomplete="cc-csc" inputmode="numeric" />
+            </div>
+          </div>
+        </div>
+
+        <div id="campos-pagamento-pix" style="display: none">
+          <h4>Pagamento via Pix</h4>
+          <p>Chave Pix: <strong>ingresso.cine@55.com</strong></p>
+        </div>
+
+        <button type="submit" class="btn-comprar" id="btn-comprar">
+          Comprar Ingresso
+        </button>
+      </form>
+    </section>
+
+    <script>
+      /* ── Obter dados do sessionStorage (não da URL!) ─────── */
+      let cinemaData = {};
+      try {
+        cinemaData = JSON.parse(sessionStorage.getItem('cinemaData')) || {};
+      } catch (e) {
+        cinemaData = {};
+      }
+
+      const filme = cinemaData.filme || '';
+      const usuarioSalvo = cinemaData.usuario || '';
+
+      if (!filme) {
+        window.location.href = 'index.html';
+      }
+
+      let poltronaSelecionada = null;
+      let horarioSelecionado = null;
+
+      /* ── Exibir nome do filme (seguro) ──────────────────── */
+      const filmeInfo = document.getElementById('filme-info');
+      const h2 = document.createElement('h2');
+      h2.textContent = filme;
+      filmeInfo.appendChild(h2);
+
+      /* ── Preencher nome salvo ───────────────────────────── */
+      if (usuarioSalvo) {
+        document.getElementById('nome').value = usuarioSalvo;
+      }
+
+      /* ── Criar poltronas ────────────────────────────────── */
+      const poltronasGrid = document.getElementById('poltronas-grid');
+      const fragment = document.createDocumentFragment();
+
+      for (let i = 1; i <= 40; i++) {
+        const poltrona = document.createElement('div');
+        poltrona.className = 'poltrona';
+        poltrona.textContent = `A${i}`;
+        poltrona.dataset.numero = `A${i}`;
+        poltrona.tabIndex = 0;
+        poltrona.role = 'button';
+        poltrona.setAttribute('aria-label', `Poltrona A${i}`);
+        fragment.appendChild(poltrona);
+      }
+      poltronasGrid.appendChild(fragment);
+
+      /* ── Stepper ────────────────────────────────────────── */
+      function atualizarStepper(etapa) {
+        for (let i = 1; i <= 3; i++) {
+          const step = document.getElementById(`step-${i}`);
+          const line = document.getElementById(`line-${i}`);
+          step.classList.remove('active', 'completed');
+          if (line) line.classList.remove('active');
+
+          if (i < etapa) {
+            step.classList.add('completed');
+            if (line) line.classList.add('active');
+          } else if (i === etapa) {
+            step.classList.add('active');
+          }
+        }
+      }
+
+      /* ── Selecionar Horário ─────────────────────────────── */
+      document.getElementById('horarios-grid').addEventListener('click', (e) => {
+        const btn = e.target.closest('.horario');
+        if (!btn) return;
+
+        document.querySelectorAll('.horario').forEach((h) => h.classList.remove('selected'));
+        btn.classList.add('selected');
+        horarioSelecionado = btn.dataset.horario;
+
+        document.getElementById('poltronas').style.display = 'block';
+        atualizarStepper(2);
+
+        // Buscar poltronas ocupadas do servidor
+        carregarPoltronasOcupadas();
+
+        // Scroll suave
+        document.getElementById('poltronas').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      /* ── Carregar poltronas ocupadas ─────────────────────── */
+      async function carregarPoltronasOcupadas() {
+        try {
+          const res = await fetch(`/poltronas/${encodeURIComponent(filme)}/${horarioSelecionado}`);
+          if (res.ok) {
+            const data = await res.json();
+            const ocupadas = data.ocupadas || [];
+
+            document.querySelectorAll('.poltrona').forEach((p) => {
+              p.classList.remove('ocupada');
+              if (ocupadas.includes(p.dataset.numero)) {
+                p.classList.add('ocupada');
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('Não foi possível carregar poltronas ocupadas:', e);
+        }
+      }
+
+      /* ── Selecionar Poltrona (event delegation) ─────────── */
+      poltronasGrid.addEventListener('click', (e) => {
+        const poltrona = e.target.closest('.poltrona');
+        if (!poltrona || poltrona.classList.contains('ocupada')) return;
+
+        document.querySelectorAll('.poltrona').forEach((p) => p.classList.remove('selecionada'));
+        poltrona.classList.add('selecionada');
+        poltronaSelecionada = poltrona.dataset.numero;
+
+        document.getElementById('formulario').style.display = 'block';
+        atualizarStepper(3);
+
+        document.getElementById('formulario').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      // Acessibilidade
+      poltronasGrid.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const poltrona = e.target.closest('.poltrona');
+          if (poltrona && !poltrona.classList.contains('ocupada')) {
+            e.preventDefault();
+            poltrona.click();
+          }
+        }
+      });
+
+      /* ── Toggle Meia/Inteira ────────────────────────────── */
+      document.querySelectorAll('input[name="tipo"]').forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+          const isMeia = e.target.value === 'meia';
+          const camposMeia = document.getElementById('campos-meia');
+          const carteiraInput = document.getElementById('carteira-estudante');
+
+          camposMeia.style.display = isMeia ? 'block' : 'none';
+          carteiraInput.required = isMeia;
+        });
+      });
+
+      /* ── Toggle Pagamento ───────────────────────────────── */
+      document.querySelectorAll('input[name="pagamento"]').forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+          const isCartao = e.target.value === 'cartao';
+          document.getElementById('campos-pagamento-cartao').style.display = isCartao ? 'block' : 'none';
+          document.getElementById('campos-pagamento-pix').style.display = isCartao ? 'none' : 'block';
+        });
+      });
+
+      /* ── Máscara de entrada para número do cartão ───────── */
+      document.getElementById('numero-cartao').addEventListener('input', function (e) {
+        let v = this.value.replace(/\D/g, '').slice(0, 16);
+        this.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+      });
+
+      document.getElementById('vencimento').addEventListener('input', function (e) {
+        let v = this.value.replace(/\D/g, '').slice(0, 4);
+        if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+        this.value = v;
+      });
+
+      document.getElementById('cvv').addEventListener('input', function (e) {
+        this.value = this.value.replace(/\D/g, '').slice(0, 4);
+      });
+
+      /* ── Validação de email ─────────────────────────────── */
+      function validarEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      /* ── Submissão do Formulário ────────────────────────── */
+      document.getElementById('comprar-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const nome = document.getElementById('nome').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const tipoIngresso = document.querySelector('input[name="tipo"]:checked').value;
+        const valor = tipoIngresso === 'inteira' ? 25.00 : 12.50;
+        const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
+        const carteiraEstudante = document.getElementById('carteira-estudante').value.trim();
+
+        /* ── Validação frontend ───────────────────────────── */
+        const erros = [];
+
+        if (!nome || nome.length < 2) erros.push('Nome deve ter pelo menos 2 caracteres.');
+        if (!email || !validarEmail(email)) erros.push('E-mail inválido.');
+        if (!horarioSelecionado) erros.push('Selecione um horário.');
+        if (!poltronaSelecionada) erros.push('Selecione uma poltrona.');
+        if (tipoIngresso === 'meia' && !carteiraEstudante) erros.push('Informe a carteira de estudante.');
+
+        if (pagamento === 'cartao') {
+          const numCartao = document.getElementById('numero-cartao').value.replace(/\s/g, '');
+          const vencimento = document.getElementById('vencimento').value;
+          const cvv = document.getElementById('cvv').value;
+
+          if (!numCartao || numCartao.length < 13) erros.push('Número do cartão inválido.');
+          if (!vencimento || !/^\d{2}\/\d{2}$/.test(vencimento)) erros.push('Data de vencimento inválida.');
+          if (!cvv || cvv.length < 3) erros.push('CVV inválido.');
+        }
+
+        if (erros.length > 0) {
+          alert(erros.join('\n'));
+          return;
+        }
+
+        /* ── Enviar para o servidor ───────────────────────── */
+        const btnComprar = document.getElementById('btn-comprar');
+        btnComprar.disabled = true;
+        btnComprar.textContent = 'Processando...';
+
+        try {
+          const response = await fetch('/comprar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nome,
+              email,
+              filme,
+              horario: horarioSelecionado,
+              poltrona: poltronaSelecionada,
+              tipo_ingresso: tipoIngresso,
+              metodo_pagamento: pagamento,
+              carteira_estudante: carteiraEstudante || null,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.sucesso) {
+            // Salvar dados de confirmação em sessionStorage
+            sessionStorage.setItem('confirmacao', JSON.stringify({
+              filme,
+              nome,
+              email,
+              horario: horarioSelecionado,
+              poltrona: poltronaSelecionada,
+              tipo: tipoIngresso,
+              valor: valor.toFixed(2),
+              pagamento,
+              carteiraEstudante: tipoIngresso === 'meia' ? carteiraEstudante : null,
+              compraId: data.compra_id,
+            }));
+
+            window.location.href = 'confirmacao.html';
+          } else {
+            alert(data.erros ? data.erros.join('\n') : 'Erro ao processar compra.');
+            btnComprar.disabled = false;
+            btnComprar.textContent = 'Comprar Ingresso';
+          }
+        } catch (error) {
+          console.error('Erro ao comprar:', error);
+          alert('Erro de conexão. Tente novamente.');
+          btnComprar.disabled = false;
+          btnComprar.textContent = 'Comprar Ingresso';
+        }
+      });
+    </script>
+  </body>
+</html>

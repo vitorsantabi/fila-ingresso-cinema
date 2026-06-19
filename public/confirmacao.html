@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Confirmação de compra de ingresso — CineTicket" />
+    <title>CineTicket — Confirmação de Compra</title>
+    <link rel="shortcut icon" href="assets/img/icon.png" type="image/x-icon" />
+    <link rel="stylesheet" href="assets/css/cifirma.css" />
+  </head>
+  <body>
+    <h1>Compra Confirmada!</h1>
+
+    <!-- Ícone de sucesso animado -->
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24">
+        <path class="checkmark-path" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <p class="success-text">Seu ingresso foi reservado com sucesso</p>
+
+    <div id="detalhes-compra"></div>
+
+    <div class="actions">
+      <a href="index.html" class="btn-back">
+        ← Voltar aos Filmes
+      </a>
+    </div>
+
+    <!-- Confetti container -->
+    <div class="confetti-container" id="confetti"></div>
+
+    <script>
+      /* ── Ler dados do sessionStorage (seguro) ───────────── */
+      let confirmacao = {};
+      try {
+        confirmacao = JSON.parse(sessionStorage.getItem('confirmacao')) || {};
+      } catch (e) {
+        confirmacao = {};
+      }
+
+      if (!confirmacao.filme) {
+        window.location.href = 'index.html';
+      }
+
+      /* ── Helper para criar linhas seguras (sem innerHTML com dados do usuário) ── */
+      function criarDetalheRow(icone, label, valor, highlight = false) {
+        const row = document.createElement('div');
+        row.className = 'detalhe-row';
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'detalhe-label';
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'icon';
+        iconSpan.textContent = icone;
+        labelEl.appendChild(iconSpan);
+        labelEl.appendChild(document.createTextNode(` ${label}`));
+
+        const valorEl = document.createElement('span');
+        valorEl.className = 'detalhe-valor' + (highlight ? ' highlight' : '');
+        valorEl.textContent = valor;
+
+        row.appendChild(labelEl);
+        row.appendChild(valorEl);
+        return row;
+      }
+
+      /* ── Construir detalhes (seguro contra XSS) ─────────── */
+      const container = document.getElementById('detalhes-compra');
+
+      const detalhes = [
+        { icone: '🎬', label: 'Filme', valor: confirmacao.filme || '—' },
+        { icone: '👤', label: 'Nome', valor: confirmacao.nome || '—' },
+        { icone: '✉️', label: 'E-mail', valor: confirmacao.email || '—' },
+        { icone: '🕐', label: 'Horário', valor: confirmacao.horario || '—' },
+        { icone: '💺', label: 'Poltrona', valor: confirmacao.poltrona || '—' },
+        { icone: '🎫', label: 'Tipo', valor: confirmacao.tipo === 'inteira' ? 'Inteira' : 'Meia-entrada' },
+        { icone: '💰', label: 'Método', valor: confirmacao.pagamento === 'cartao' ? 'Cartão de Crédito' : 'Pix', highlight: false },
+      ];
+
+      if (confirmacao.tipo === 'meia' && confirmacao.carteiraEstudante) {
+        detalhes.push({ icone: '🎓', label: 'Carteira', valor: confirmacao.carteiraEstudante });
+      }
+
+      detalhes.forEach((d) => {
+        container.appendChild(criarDetalheRow(d.icone, d.label, d.valor, d.highlight));
+      });
+
+      // Total
+      const totalRow = document.createElement('div');
+      totalRow.className = 'detalhe-total';
+
+      const totalLabel = document.createElement('span');
+      totalLabel.className = 'detalhe-label';
+      totalLabel.textContent = 'Total';
+
+      const totalValor = document.createElement('span');
+      totalValor.className = 'detalhe-valor';
+      totalValor.textContent = `R$ ${confirmacao.valor || '0.00'}`;
+
+      totalRow.appendChild(totalLabel);
+      totalRow.appendChild(totalValor);
+      container.appendChild(totalRow);
+
+      /* ── Confetti Effect ────────────────────────────────── */
+      function criarConfetti() {
+        const container = document.getElementById('confetti');
+        const cores = ['#7c3aed', '#a855f7', '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6'];
+
+        for (let i = 0; i < 60; i++) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.animationDelay = Math.random() * 2 + 's';
+          confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+          confetti.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+          confetti.style.width = (6 + Math.random() * 8) + 'px';
+          confetti.style.height = (6 + Math.random() * 8) + 'px';
+          confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+          container.appendChild(confetti);
+        }
+
+        // Limpar confetti depois
+        setTimeout(() => {
+          container.innerHTML = '';
+        }, 5000);
+      }
+
+      criarConfetti();
+
+      /* ── Limpar dados de sessão ──────────────────────────── */
+      sessionStorage.removeItem('cinemaData');
+      // Manter 'confirmacao' caso o usuário recarregue a página
+    </script>
+  </body>
+</html>
